@@ -1,7 +1,6 @@
 package ecommerce.service;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +10,10 @@ import ecommerce.dto.CompraDTO;
 import ecommerce.dto.DisponibilidadeDTO;
 import ecommerce.dto.EstoqueBaixaDTO;
 import ecommerce.dto.PagamentoDTO;
+import ecommerce.dto.ProdutoComQuantidadeDTO;
 import ecommerce.entity.CarrinhoDeCompras;
 import ecommerce.entity.Cliente;
+import ecommerce.entity.TipoCliente;
 import ecommerce.external.IEstoqueExternal;
 import ecommerce.external.IPagamentoExternal;
 import jakarta.transaction.Transactional;
@@ -46,28 +47,27 @@ public class CompraService
 		Cliente cliente = clienteService.buscarPorId(clienteId);
 		CarrinhoDeCompras carrinho = carrinhoService.buscarPorCarrinhoIdEClienteId(carrinhoId, cliente);
 
-		List<Long> produtosIds = carrinho.getItens().stream().map(i -> i.getProduto().getId())
+		var idsProdutosComQuantidades = carrinho.getItens().stream()
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
 				.collect(Collectors.toList());
-		List<Long> produtosQtds = carrinho.getItens().stream().map(i -> i.getQuantidade()).collect(Collectors.toList());
 
-		DisponibilidadeDTO disponibilidade = estoqueExternal.verificarDisponibilidade(produtosIds, produtosQtds);
+		DisponibilidadeDTO disponibilidade = estoqueExternal.verificarDisponibilidade(idsProdutosComQuantidades);
 
-		if (!disponibilidade.disponivel()) {
+		if (disponibilidade.idsProdutosDisponiveis().isEmpty())
+		{
 			throw new IllegalStateException("Itens fora de estoque.");
 		}
 
-		BigDecimal custoTotal = calcularCustoTotal(carrinho);
-
-		PagamentoDTO pagamento = pagamentoExternal.autorizarPagamento(cliente.getId(), custoTotal.doubleValue());
+		PagamentoDTO pagamento = pagamentoExternal.autorizarPagamento(cliente.getId(), carrinho.obterValorTotal());
 
 		if (!pagamento.autorizado()) {
 			throw new IllegalStateException("Pagamento não autorizado.");
 		}
 
-		EstoqueBaixaDTO baixaDTO = estoqueExternal.darBaixa(produtosIds, produtosQtds);
+		EstoqueBaixaDTO baixaDTO = estoqueExternal.darBaixa(idsProdutosComQuantidades);
 
 		if (!baixaDTO.sucesso()) {
-			pagamentoExternal.cancelarPagamento(cliente.getId(), pagamento.transacaoId());
+			pagamentoExternal.cancelarPagamento(pagamento.transacaoId());
 			throw new IllegalStateException("Erro ao dar baixa no estoque.");
 		}
 
@@ -76,9 +76,57 @@ public class CompraService
 		return compraDTO;
 	}
 
+	public BigDecimal aplicarDescontoFrete(Cliente cliente, BigDecimal valorFrete)
+	{
+		var tipo = cliente.getTipo();
+
+		if (tipo == TipoCliente.OURO) {
+			return BigDecimal.ZERO;
+		}
+		if (tipo == TipoCliente.PRATA) {
+			return valorFrete.multiply(BigDecimal.valueOf(0.5));
+		}
+		return valorFrete;
+	}
+
+	public BigDecimal calcularFreteParcial(CarrinhoDeCompras carrinho)
+	{
+		var peso = carrinho.obterPesoTotal();
+
+		if (peso <= 5) {
+			return BigDecimal.ZERO;
+		}
+		if (peso < 10) {
+			return BigDecimal.valueOf(2 * peso);
+		}
+		if (peso < 50) {
+			return BigDecimal.valueOf(4 * peso);
+		}
+		return BigDecimal.valueOf(7 * peso);
+	}
+
+	public BigDecimal cacularFrete(CarrinhoDeCompras carrinho)
+	{
+		return aplicarDescontoFrete(carrinho.getCliente(), calcularFreteParcial(carrinho));
+	}
+
+	public BigDecimal aplicarDescontoValor(BigDecimal valorFinal)
+	{
+		if (valorFinal.compareTo(BigDecimal.valueOf(1000)) > 0)
+		{
+			return valorFinal.multiply(BigDecimal.valueOf(0.8));
+		}
+		if (valorFinal.compareTo(BigDecimal.valueOf(500)) > 0)
+		{
+			return valorFinal.multiply(BigDecimal.valueOf(0.9));
+		}
+		
+		return valorFinal;
+	}
+
 	public BigDecimal calcularCustoTotal(CarrinhoDeCompras carrinho)
 	{
-		// To-Do
-		return BigDecimal.ZERO;
+		return aplicarDescontoValor(carrinho.obterValorTotal())
+			.add(cacularFrete(carrinho));
 	}
 }

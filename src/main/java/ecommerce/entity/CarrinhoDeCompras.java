@@ -1,5 +1,6 @@
 package ecommerce.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,20 @@ public class CarrinhoDeCompras {
         this.cliente = cliente;
         this.itens = itens;
         this.data = data;
+    }
+
+    public BigDecimal obterValorTotal()
+    {
+        return itens.stream()
+            .map(ItemCompra::obterSubtotalValor)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public Integer obterPesoTotal()
+    {
+        return itens.stream()
+            .map(ItemCompra::obterSubtotalPeso)
+            .reduce(0, Integer::sum);
     }
 
     // Getters e Setters

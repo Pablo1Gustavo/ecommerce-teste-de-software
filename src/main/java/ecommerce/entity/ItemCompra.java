@@ -1,5 +1,7 @@
 package ecommerce.entity;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +28,16 @@ public class ItemCompra {
         this.id = id;
         this.produto = produto;
         this.quantidade = quantidade;
+    }
+
+    public BigDecimal obterSubtotalValor()
+    {
+        return produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
+    }
+
+    public Integer obterSubtotalPeso()
+    {
+        return produto.getPeso() * quantidade.intValue();
     }
 
     // Getters e Setters
