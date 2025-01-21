@@ -4,9 +4,10 @@ import java.util.List;
 
 import ecommerce.dto.DisponibilidadeDTO;
 import ecommerce.dto.EstoqueBaixaDTO;
+import ecommerce.dto.ProdutoComQuantidadeDTO;
 
 public interface IEstoqueExternal
 {
-	public EstoqueBaixaDTO darBaixa(List<Long> produtosIds, List<Long> produtosQuantidades);
-	public DisponibilidadeDTO verificarDisponibilidade(List<Long> produtosIds, List<Long> produtosQuantidades);
+	public DisponibilidadeDTO verificarDisponibilidade(List<ProdutoComQuantidadeDTO> idsProdutosComQuantidades);
+	public EstoqueBaixaDTO darBaixa(List<ProdutoComQuantidadeDTO>  idsProdutosComQuantidades);
 }
