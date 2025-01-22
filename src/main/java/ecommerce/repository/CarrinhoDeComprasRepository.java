@@ -10,6 +10,4 @@ import ecommerce.entity.Cliente;
 
 @Repository
 public interface CarrinhoDeComprasRepository extends JpaRepository<CarrinhoDeCompras, Long>
-{
-    Optional<CarrinhoDeCompras> findByIdAndCliente(Long id, Cliente cliente);
-}
+{}

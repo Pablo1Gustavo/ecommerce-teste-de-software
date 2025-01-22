@@ -3,7 +3,6 @@ package ecommerce.service;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ecommerce.dto.CompraDTO;
@@ -22,12 +21,10 @@ import jakarta.transaction.Transactional;
 public class CompraService
 {
 	private final CarrinhoDeComprasService carrinhoService;
-	private final ClienteService clienteService;
 
 	private final IEstoqueExternal estoqueExternal;
 	private final IPagamentoExternal pagamentoExternal;
 
-	@Autowired
 	public CompraService(
 		CarrinhoDeComprasService carrinhoService,
 		ClienteService clienteService,
@@ -35,17 +32,15 @@ public class CompraService
 		IPagamentoExternal pagamentoExternal
 	) {
 		this.carrinhoService = carrinhoService;
-		this.clienteService = clienteService;
 
 		this.estoqueExternal = estoqueExternal;
 		this.pagamentoExternal = pagamentoExternal;
 	}
 
 	@Transactional
-	public CompraDTO finalizarCompra(Long carrinhoId, Long clienteId)
+	public CompraDTO finalizarCompra(Long carrinhoId)
 	{
-		Cliente cliente = clienteService.buscarPorId(clienteId);
-		CarrinhoDeCompras carrinho = carrinhoService.buscarPorCarrinhoIdEClienteId(carrinhoId, cliente);
+		CarrinhoDeCompras carrinho = carrinhoService.buscarPorId(carrinhoId);
 
 		var idsProdutosComQuantidades = carrinho.getItens().stream()
 				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
@@ -58,7 +53,10 @@ public class CompraService
 			throw new IllegalStateException("Itens fora de estoque.");
 		}
 
-		PagamentoDTO pagamento = pagamentoExternal.autorizarPagamento(cliente.getId(), carrinho.obterValorTotal());
+		PagamentoDTO pagamento = pagamentoExternal.autorizarPagamento(
+			carrinho.getCliente().getId(),
+			carrinho.obterValorTotal()
+		);
 
 		if (!pagamento.autorizado()) {
 			throw new IllegalStateException("Pagamento não autorizado.");

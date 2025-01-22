@@ -3,7 +3,6 @@ package ecommerce.controller;
 import ecommerce.dto.CompraDTO;
 import ecommerce.service.CompraService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,17 +13,16 @@ public class CompraController
 {
 	private final CompraService compraService;
 
-	@Autowired
 	public CompraController(CompraService compraService)
 	{
 		this.compraService = compraService;
 	}
 
 	@PostMapping("/finalizar")
-	public ResponseEntity<CompraDTO> finalizarCompra(@RequestParam Long carrinhoId, @RequestParam Long clienteId)
+	public ResponseEntity<CompraDTO> finalizarCompra(@RequestParam Long carrinhoId)
 	{
 		try {
-			CompraDTO compraDTO = compraService.finalizarCompra(carrinhoId, clienteId);
+			CompraDTO compraDTO = compraService.finalizarCompra(carrinhoId);
 			return ResponseEntity.ok(compraDTO);
 		}
 		catch (IllegalArgumentException e)
