@@ -22,7 +22,7 @@ public class ItemCompra
     @JoinColumn(name = "produto_id")
     private Produto produto;
 
-    private Integer quantidade;
+    private Long quantidade;
 
 	public ItemCompra() {
 	}

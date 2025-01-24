@@ -37,8 +37,13 @@ public class CompraService {
 		CarrinhoDeCompras carrinho = carrinhoService.buscarPorId(carrinhoId);
 
 		var idsProdutosComQuantidades = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
 				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
 				.collect(Collectors.toList());
+
+		if (idsProdutosComQuantidades.isEmpty()) {
+			throw new IllegalStateException("Nenhum produto válido no carrinho.");
+		}
 
 		DisponibilidadeDTO disponibilidade = estoqueExternal.verificarDisponibilidade(idsProdutosComQuantidades);
 
@@ -65,8 +70,7 @@ public class CompraService {
 		return compraDTO;
 	}
 
-	public BigDecimal calcularFreteComDescontoCliente(Cliente cliente, BigDecimal valorFrete)
-	{
+	public BigDecimal calcularFreteComDescontoCliente(Cliente cliente, BigDecimal valorFrete) {
 		var tipo = cliente.getTipo();
 
 		if (tipo == TipoCliente.OURO) {
@@ -78,8 +82,7 @@ public class CompraService {
 		return valorFrete;
 	}
 
-	public BigDecimal calcularFretePorPeso(CarrinhoDeCompras carrinho)
-	{
+	public BigDecimal calcularFretePorPeso(CarrinhoDeCompras carrinho) {
 		var peso = carrinho.obterPesoTotal();
 
 		if (peso <= 5) {
@@ -94,8 +97,7 @@ public class CompraService {
 		return BigDecimal.valueOf(7 * peso);
 	}
 
-	public BigDecimal cacularFrete(CarrinhoDeCompras carrinho)
-	{
+	public BigDecimal cacularFrete(CarrinhoDeCompras carrinho) {
 		return calcularFreteComDescontoCliente(carrinho.getCliente(), calcularFretePorPeso(carrinho));
 	}
 
