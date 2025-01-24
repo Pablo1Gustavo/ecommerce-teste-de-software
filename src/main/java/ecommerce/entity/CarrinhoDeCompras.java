@@ -17,73 +17,67 @@ import jakarta.persistence.OneToMany;
 @Entity
 public class CarrinhoDeCompras {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+	@ManyToOne
+	@JoinColumn(name = "cliente_id")
+	private Cliente cliente;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "carrinho_id")
-    private List<ItemCompra> itens = new ArrayList<>();
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "carrinho_id")
+	private List<ItemCompra> itens = new ArrayList<>();
 
-    private LocalDate data;
+	private LocalDate data;
 
-    public CarrinhoDeCompras() {}
+	public CarrinhoDeCompras() {
+	}
 
-    public CarrinhoDeCompras(Long id, Cliente cliente, List<ItemCompra> itens, LocalDate data) {
-        this.id = id;
-        this.cliente = cliente;
-        this.itens = itens;
-        this.data = data;
-    }
+	public CarrinhoDeCompras(Long id, Cliente cliente, List<ItemCompra> itens, LocalDate data) {
+		this.id = id;
+		this.cliente = cliente;
+		this.itens = itens;
+		this.data = data;
+	}
 
-    public BigDecimal obterValorTotal()
-    {
-        return itens.stream()
-            .map(ItemCompra::obterSubtotalValor)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+	public BigDecimal obterValorTotal() {
+		return itens.stream().map(ItemCompra::obterSubtotalValor).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
 
-    public Integer obterPesoTotal()
-    {
-        return itens.stream()
-            .map(ItemCompra::obterSubtotalPeso)
-            .reduce(0, Integer::sum);
-    }
+	public Integer obterPesoTotal() {
+		return itens.stream().map(ItemCompra::obterSubtotalPeso).reduce(0, Integer::sum);
+	}
 
-    // Getters e Setters
-    public Long getId() {
-        return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public Cliente getCliente() {
-        return cliente;
-    }
+	public Cliente getCliente() {
+		return cliente;
+	}
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
+	public void setCliente(Cliente cliente) {
+		this.cliente = cliente;
+	}
 
-    public List<ItemCompra> getItens() {
-        return itens;
-    }
+	public List<ItemCompra> getItens() {
+		return itens;
+	}
 
-    public void setItens(List<ItemCompra> itens) {
-        this.itens = itens;
-    }
+	public void setItens(List<ItemCompra> itens) {
+		this.itens = itens;
+	}
 
-    public LocalDate getData() {
-        return data;
-    }
+	public LocalDate getData() {
+		return data;
+	}
 
-    public void setData(LocalDate data) {
-        this.data = data;
-    }
+	public void setData(LocalDate data) {
+		this.data = data;
+	}
 }

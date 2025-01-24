@@ -24,46 +24,45 @@ public class ItemCompra
 
     private Integer quantidade;
 
-    public ItemCompra() {}
+	public ItemCompra() {
+	}
 
-    public ItemCompra(Long id, Produto produto, Integer quantidade) {
-        this.id = id;
-        this.produto = produto;
-        this.quantidade = quantidade;
-    }
+	public ItemCompra(Long id, Produto produto, Long quantidade) {
+		this.id = id;
+		this.produto = produto;
+		this.quantidade = quantidade;
+	}
 
-    public BigDecimal obterSubtotalValor()
-    {
-        return produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
-    }
+	public BigDecimal obterSubtotalValor() {
+		return produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
+	}
 
-    public Integer obterSubtotalPeso()
-    {
-        return produto.getPeso() * quantidade.intValue();
-    }
+	public Integer obterSubtotalPeso() {
+		return produto.getPeso() * quantidade.intValue();
+	}
 
-    // Getters e Setters
-    public Long getId() {
-        return id;
-    }
+	// Getters e Setters
+	public Long getId() {
+		return id;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public Produto getProduto() {
-        return produto;
-    }
+	public Produto getProduto() {
+		return produto;
+	}
 
-    public void setProduto(Produto produto) {
-        this.produto = produto;
-    }
+	public void setProduto(Produto produto) {
+		this.produto = produto;
+	}
 
-    public Integer getQuantidade() {
-        return quantidade;
-    }
+	public Long getQuantidade() {
+		return quantidade;
+	}
 
-    public void setQuantidade(Integer quantidade) {
-        this.quantidade = quantidade;
-    }
+	public void setQuantidade(Long quantidade) {
+		this.quantidade = quantidade;
+	}
 }

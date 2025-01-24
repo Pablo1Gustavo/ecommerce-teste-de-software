@@ -1,6 +1,5 @@
 package ecommerce.entity;
 
-public enum TipoCliente
-{
+public enum TipoCliente {
 	BRONZE, PRATA, OURO
 }
