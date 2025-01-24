@@ -3,6 +3,7 @@ package ecommerce.entity;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,21 +11,22 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-public class ItemCompra {
-
+@Table(name="itens_compras")
+public class ItemCompra
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne // Vários itens podem se referir ao mesmo produto
+    @ManyToOne
     @JoinColumn(name = "produto_id")
     private Produto produto;
 
-    private Long quantidade;
+    private Integer quantidade;
 
     public ItemCompra() {}
 
-    public ItemCompra(Long id, Produto produto, Long quantidade) {
+    public ItemCompra(Long id, Produto produto, Integer quantidade) {
         this.id = id;
         this.produto = produto;
         this.quantidade = quantidade;
@@ -57,11 +59,11 @@ public class ItemCompra {
         this.produto = produto;
     }
 
-    public Long getQuantidade() {
+    public Integer getQuantidade() {
         return quantidade;
     }
 
-    public void setQuantidade(Long quantidade) {
+    public void setQuantidade(Integer quantidade) {
         this.quantidade = quantidade;
     }
 }

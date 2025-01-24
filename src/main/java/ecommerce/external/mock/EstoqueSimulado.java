@@ -15,7 +15,7 @@ import ecommerce.external.IEstoqueExternal;
 @Service
 public class EstoqueSimulado implements IEstoqueExternal
 {
-    private Map<Long, Long> quantidadeEmEstoque = new HashMap<>();
+    private Map<Long, Integer> quantidadeEmEstoque = new HashMap<>();
 
     public EstoqueSimulado(List<ProdutoComQuantidadeDTO> idsProdutosComQuantidades)
     {
@@ -25,12 +25,12 @@ public class EstoqueSimulado implements IEstoqueExternal
 
     public EstoqueSimulado() {}
 
-    public void adicionarAoEstoque(long produtoId, Long quantidade)
+    public void adicionarAoEstoque(long produtoId, Integer quantidade)
     {
         quantidadeEmEstoque.put(produtoId, quantidadeEmEstoque.get(produtoId) + quantidade);
     }
 
-    public void removeDoEstoque(long produtoId, Long quantidadeRetirar)
+    public void removeDoEstoque(long produtoId, Integer quantidadeRetirar)
     {
         var quantidadeNoEstoque = quantidadeEmEstoque.get(produtoId);
 
@@ -46,7 +46,7 @@ public class EstoqueSimulado implements IEstoqueExternal
     public DisponibilidadeDTO verificarDisponibilidade(List<ProdutoComQuantidadeDTO> idsProdutosComQuantidades)
     {
        var idsDisponiveis = idsProdutosComQuantidades.stream()
-            .filter(item -> quantidadeEmEstoque.getOrDefault(item.produtoId(), 0L) > item.quantidade())
+            .filter(item -> quantidadeEmEstoque.getOrDefault(item.produtoId(), 0) > item.quantidade())
             .map(ProdutoComQuantidadeDTO::produtoId)
             .collect(Collectors.toList());
     

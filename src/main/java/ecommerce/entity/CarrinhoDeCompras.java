@@ -21,12 +21,12 @@ public class CarrinhoDeCompras {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne // Um cliente pode ter vários carrinhos
-    @JoinColumn(name = "cliente_id") // Nome da chave estrangeira
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true) // Um carrinho tem vários itens
-    @JoinColumn(name = "carrinho_id") // Mapeamento de chave estrangeira na tabela ItemCompra
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "carrinho_id")
     private List<ItemCompra> itens = new ArrayList<>();
 
     private LocalDate data;

@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/compras")
 public class CompraController
 {
 	private final CompraService compraService;
@@ -18,8 +18,8 @@ public class CompraController
 		this.compraService = compraService;
 	}
 
-	@PostMapping("/finalizar")
-	public ResponseEntity<CompraDTO> finalizarCompra(@RequestParam Long carrinhoId)
+	@PostMapping("/{carrinhoId}/finalizar")
+	public ResponseEntity<CompraDTO> finalizarCompra(@PathVariable Long carrinhoId)
 	{
 		try {
 			CompraDTO compraDTO = compraService.finalizarCompra(carrinhoId);
@@ -32,7 +32,7 @@ public class CompraController
 		}
 		catch (IllegalStateException e)
 		{
-			return ResponseEntity.status(HttpStatus.CONFLICT)
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
 				.body(new CompraDTO(false, null, e.getMessage()));
 		}
 		catch (Exception e)

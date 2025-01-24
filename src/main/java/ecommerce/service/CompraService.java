@@ -74,7 +74,7 @@ public class CompraService
 		return compraDTO;
 	}
 
-	public BigDecimal aplicarDescontoFrete(Cliente cliente, BigDecimal valorFrete)
+	public BigDecimal calcularFreteComDescontoCliente(Cliente cliente, BigDecimal valorFrete)
 	{
 		var tipo = cliente.getTipo();
 
@@ -87,7 +87,7 @@ public class CompraService
 		return valorFrete;
 	}
 
-	public BigDecimal calcularFreteParcial(CarrinhoDeCompras carrinho)
+	public BigDecimal calcularFretePorPeso(CarrinhoDeCompras carrinho)
 	{
 		var peso = carrinho.obterPesoTotal();
 
@@ -105,7 +105,7 @@ public class CompraService
 
 	public BigDecimal cacularFrete(CarrinhoDeCompras carrinho)
 	{
-		return aplicarDescontoFrete(carrinho.getCliente(), calcularFreteParcial(carrinho));
+		return calcularFreteComDescontoCliente(carrinho.getCliente(), calcularFretePorPeso(carrinho));
 	}
 
 	public BigDecimal aplicarDescontoValor(BigDecimal valorFinal)
