@@ -144,7 +144,7 @@ class CompraServiceTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({ "499, 499", "500, 500", "1000, 900", "1500, 1200" })
+	@CsvSource({ "123, 123", "500, 500", "501, 450.9", "800, 720", "1000, 900", "1001, 800.8", "10000, 8000" })
 	void deveAplicarDescontoBaseadoNoValor(BigDecimal valorInicial, BigDecimal valorEsperado) {
 		BigDecimal resultado = compraService.aplicarDescontoValor(valorInicial);
 
