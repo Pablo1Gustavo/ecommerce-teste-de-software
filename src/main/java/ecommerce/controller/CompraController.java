@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +20,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/")
 @Tag(name = "Compra Controller", description = "Gerencia as operações relacionadas a compras")
 public class CompraController {
-    private final CompraService compraService;
-
-    public CompraController(CompraService compraService) {
-        this.compraService = compraService;
-    }
+	
+	@Autowired
+    private CompraService compraService;
 
     @Operation(
         summary = "Finalizar compra",
