@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -221,7 +222,14 @@ class CompraServiceTest {
 
 	@Test
 	void deveLancarExcecaoQuandoCarrinhoContemItensInvalidos() {
-	    CarrinhoDeCompras carrinhoMock = new CarrinhoDeCompras(1L, null, List.of(null, new ItemCompra(2L, null, 1L)), null);
+		
+		List<ItemCompra> items = new ArrayList<>();
+		
+		ItemCompra itemNull = null;
+		items.add(itemNull);
+		items.add(new ItemCompra(2L, null, 1L));
+		
+	    CarrinhoDeCompras carrinhoMock = new CarrinhoDeCompras(1L, null, items, null);
 	    when(carrinhoService.buscarPorId(1L)).thenReturn(carrinhoMock);
 
 	    IllegalStateException exception = assertThrows(IllegalStateException.class,

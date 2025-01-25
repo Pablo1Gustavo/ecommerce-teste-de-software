@@ -41,6 +41,8 @@ public class CompraService {
 				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
 				.collect(Collectors.toList());
 
+		idsProdutosComQuantidades.forEach(i-> System.out.println(i.toString()));
+		
 		if (idsProdutosComQuantidades.isEmpty()) {
 			throw new IllegalStateException("Nenhum produto válido no carrinho.");
 		}
