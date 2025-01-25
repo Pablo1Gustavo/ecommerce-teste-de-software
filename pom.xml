@@ -121,6 +121,11 @@
 				<groupId>org.pitest</groupId>
 				<artifactId>pitest-maven</artifactId>
 				<version>1.15.2</version>
+				<configuration>
+                <mutators>ALL</mutators>
+                <targetClasses>ecommerce.*</targetClasses> <!-- Ajuste para o pacote do seu projeto -->
+                <targetTests>ecommerce.*</targetTests> <!-- Ajuste para os testes -->
+            	</configuration>
 				<dependencies>
 				<dependency>
 					<groupId>org.pitest</groupId>

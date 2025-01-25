@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import ecommerce.dto.CompraDTO;
 import ecommerce.dto.DisponibilidadeDTO;
 import ecommerce.dto.EstoqueBaixaDTO;
 import ecommerce.dto.PagamentoDTO;
+import ecommerce.dto.ProdutoComQuantidadeDTO;
 import ecommerce.entity.CarrinhoDeCompras;
 import ecommerce.entity.Cliente;
 import ecommerce.entity.ItemCompra;
@@ -144,7 +146,7 @@ class CompraServiceTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({ "499, 499", "500, 500", "1000, 900", "1500, 1200" })
+	@CsvSource({ "123, 123", "500, 500", "501, 450.9", "800, 720", "1000, 900", "1001, 800.8", "10000, 8000" })
 	void deveAplicarDescontoBaseadoNoValor(BigDecimal valorInicial, BigDecimal valorEsperado) {
 		BigDecimal resultado = compraService.aplicarDescontoValor(valorInicial);
 
@@ -222,29 +224,148 @@ class CompraServiceTest {
 
 	@Test
 	void deveLancarExcecaoQuandoCarrinhoContemItensInvalidos() {
-		
+
 		List<ItemCompra> items = new ArrayList<>();
-		
+
 		ItemCompra itemNull = null;
 		items.add(itemNull);
 		items.add(new ItemCompra(2L, null, 1L));
-		
-	    CarrinhoDeCompras carrinhoMock = new CarrinhoDeCompras(1L, null, items, null);
-	    when(carrinhoService.buscarPorId(1L)).thenReturn(carrinhoMock);
 
-	    IllegalStateException exception = assertThrows(IllegalStateException.class,
-	            () -> compraService.finalizarCompra(1L));
-	    assertEquals("Nenhum produto válido no carrinho.", exception.getMessage());
+		CarrinhoDeCompras carrinhoMock = new CarrinhoDeCompras(1L, null, items, null);
+		when(carrinhoService.buscarPorId(1L)).thenReturn(carrinhoMock);
+
+		IllegalStateException exception = assertThrows(IllegalStateException.class,
+				() -> compraService.finalizarCompra(1L));
+		assertEquals("Nenhum produto válido no carrinho.", exception.getMessage());
 	}
 
-	
+	@Test
+	void deveIgnorarItensInvalidosNoCarrinho() {
+		List<ItemCompra> itens = new ArrayList<>();
+		itens.add(null);
+		itens.add(new ItemCompra(2L, null, 1L));
+
+		CarrinhoDeCompras carrinho = new CarrinhoDeCompras(1L, null, itens, null);
+
+		when(carrinhoService.buscarPorId(1L)).thenReturn(carrinho);
+
+		IllegalStateException exception = assertThrows(IllegalStateException.class,
+				() -> compraService.finalizarCompra(1L));
+
+		assertEquals("Nenhum produto válido no carrinho.", exception.getMessage());
+		verify(estoqueExternal, never()).verificarDisponibilidade(any());
+	}
+
+	@Test
+	void deveCriarListaDeProdutoComQuantidadeCorretamente() {
+		CarrinhoDeCompras carrinho = criarCarrinhoMock();
+		List<ProdutoComQuantidadeDTO> resultado = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
+				.collect(Collectors.toList());
+
+		assertEquals(2, resultado.size());
+		assertEquals(1L, resultado.get(0).produtoId());
+		assertEquals(2L, resultado.get(1).produtoId());
+		assertEquals(2L, resultado.get(0).quantidade());
+		assertEquals(1L, resultado.get(1).quantidade());
+	}
+
+	@Test
+	void deveLancarExcecaoQuandoDisponibilidadeForNula() {
+		Long carrinhoId = 1L;
+		CarrinhoDeCompras carrinhoMock = criarCarrinhoMock();
+
+		when(carrinhoService.buscarPorId(carrinhoId)).thenReturn(carrinhoMock);
+		when(estoqueExternal.verificarDisponibilidade(any())).thenReturn(null);
+
+		IllegalStateException exception = assertThrows(IllegalStateException.class,
+				() -> compraService.finalizarCompra(carrinhoId));
+		assertEquals("Itens fora de estoque.", exception.getMessage());
+	}
+
+	@Test
+	void deveLancarExcecaoQuandoValorTotalCarrinhoForNulo() {
+		CarrinhoDeCompras carrinhoMock = mock(CarrinhoDeCompras.class);
+		when(carrinhoService.buscarPorId(1L)).thenReturn(carrinhoMock);
+
+		assertThrows(IllegalStateException.class, () -> compraService.finalizarCompra(1L));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "1000, 900", "1001, 800.8", "500, 500", "501, 450.9" })
+	void deveAplicarDescontoCorretamente(BigDecimal valorInicial, BigDecimal valorEsperado) {
+		BigDecimal resultado = compraService.aplicarDescontoValor(valorInicial);
+		assertEquals(valorEsperado.setScale(2, RoundingMode.HALF_UP), resultado.setScale(2, RoundingMode.HALF_UP));
+	}
+
+	@Test
+	void deveCriarProdutoComQuantidadeComQuantidadeCorreta() {
+		CarrinhoDeCompras carrinho = criarCarrinhoMock();
+		List<ProdutoComQuantidadeDTO> resultado = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
+				.collect(Collectors.toList());
+
+		assertEquals(2L, resultado.get(0).quantidade());
+		assertEquals(1L, resultado.get(1).quantidade());
+	}
+
+	@Test
+	void deveCriarProdutoComQuantidadeComIdCorreto() {
+		CarrinhoDeCompras carrinho = criarCarrinhoMock();
+		List<ProdutoComQuantidadeDTO> resultado = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
+				.collect(Collectors.toList());
+
+		assertEquals(1L, resultado.get(0).produtoId());
+		assertEquals(2L, resultado.get(1).produtoId());
+	}
+
+	@Test
+	void deveCriarListaDeProdutoComQuantidadeNaoNula() {
+		CarrinhoDeCompras carrinho = criarCarrinhoMock();
+		List<ProdutoComQuantidadeDTO> resultado = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
+				.collect(Collectors.toList());
+
+		assertNotNull(resultado);
+		assertTrue(resultado.stream().allMatch(dto -> dto != null));
+	}
+
+	@Test
+	void deveTransformarItensEmProdutoComQuantidadeDTO() {
+		CarrinhoDeCompras carrinho = criarCarrinhoMock();
+		List<ProdutoComQuantidadeDTO> resultado = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
+				.collect(Collectors.toList());
+
+		assertEquals(2, resultado.size());
+		assertEquals(1L, resultado.get(0).produtoId());
+		assertEquals(2L, resultado.get(1).produtoId());
+	}
+
+	@Test
+	void deveCriarProdutoComQuantidadeDTOsValidos() {
+		CarrinhoDeCompras carrinho = criarCarrinhoMock();
+		List<ProdutoComQuantidadeDTO> resultado = carrinho.getItens().stream()
+				.filter(i -> i != null && i.getProduto() != null)
+				.map(i -> new ProdutoComQuantidadeDTO(i.getProduto().getId(), i.getQuantidade()))
+				.collect(Collectors.toList());
+
+		assertTrue(resultado.stream().allMatch(dto -> dto instanceof ProdutoComQuantidadeDTO));
+	}
+
 	private static Stream<Arguments> fornecerDadosParaCalcularCustoTotal() {
 		return Stream.of(Arguments.of(BigDecimal.valueOf(499), 4, TipoCliente.BRONZE, BigDecimal.valueOf(499)),
 				Arguments.of(BigDecimal.valueOf(500), 6, TipoCliente.PRATA, BigDecimal.valueOf(506)),
 				Arguments.of(BigDecimal.valueOf(1000), 12, TipoCliente.OURO, BigDecimal.valueOf(900)),
-				Arguments.of(BigDecimal.valueOf(1500), 50, TipoCliente.BRONZE, BigDecimal.valueOf(1200).add(BigDecimal.valueOf(350))),
-				Arguments.of(BigDecimal.valueOf(0), 0, TipoCliente.BRONZE, BigDecimal.ZERO)
-		);
+				Arguments.of(BigDecimal.valueOf(1500), 50, TipoCliente.BRONZE,
+						BigDecimal.valueOf(1200).add(BigDecimal.valueOf(350))),
+				Arguments.of(BigDecimal.valueOf(0), 0, TipoCliente.BRONZE, BigDecimal.ZERO));
 	}
 
 	private CarrinhoDeCompras criarCarrinho(BigDecimal valorTotal, int pesoCarrinho, Cliente cliente) {
